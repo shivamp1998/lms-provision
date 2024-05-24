@@ -1,5 +1,6 @@
 import util from 'util'
-import {exec} from 'child_process'
+import {execFileSync} from 'child_process'
+import path from 'path';
 import AWS, { S3 } from "aws-sdk";
 import axios from "axios";
 import { stderr, stdout } from 'process';
@@ -49,10 +50,15 @@ class Provision {
   }
   async initializeDeprovision() {
     try {
-        
-         exec(`echo "this might work ${this.bucketName}" && terraform init -backend-config="bucket=frotend-status-bucket" -backend-config="key=${this.bucketName}.tfstate" -backend-config="region=us-east-1" -migrate-state`)
-    }catch(err) {
+      const scriptPath = path.join(process.cwd(), 'deprovision.sh');
+      const fs = require('fs');
+      if (!fs.existsSync(scriptPath)) {
+        throw new Error(`File not found: ${scriptPath}`);
+      }
 
+      execFileSync('bash', [scriptPath, this.bucketName], {stdio: 'inherit'});
+    }catch(err) {
+      console.log(err)
     }
     
   }
